@@ -87,7 +87,8 @@ int main () {
         *@param   pid_t pid - pid that will be waited by calling process. -1
                   meaning wait for any child process.
         *@param   int *status - if is not NULL, store status information in
-                  the int to which it points. This integer can be inspected with macros (which take the integer itself as an argument,
+                  the int to which it points. This integer can be inspected
+                  with macros (which take the integer itself as an argument,
                   not a pointer to it)
         *@param   int options - some constants or zero that change behaviour of
                   the function
