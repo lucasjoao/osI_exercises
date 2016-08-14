@@ -135,7 +135,15 @@ int main () {
     return count;
 
     /* Respostas do "Para pensar e responder junto ao código:"
-    ...
+       1) 5.
 
+       2) Não, porque o programa só trabalha com processos, e, não há
+          compartilhamento de memória entre processos. Condição de corrida só
+          pode acontecer nessa situação.
+
+       3) Espero ver endereços diferentes ao comparar o ponteiro count do
+          processo pai com o ponteiro count do processo filho, isso porque
+          cada processo possui a sua própria região da memória para trabalhar,
+          ou seja, não compartilham memória.
     */
 }
