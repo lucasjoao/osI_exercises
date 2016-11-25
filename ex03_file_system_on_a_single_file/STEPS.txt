@@ -1,0 +1,103 @@
+Skip to main content
+INE5412-04208A (20162) - Sistemas Operacionais I
+How to create a file system on a single file in Linux
+You can create a file system on a single file (interpreted as a device) on your file, so you can "see" the file systems' structures, copy it from one place to another, etc
+
+As superuser you can see all your hardware using
+
+$> lshw
+
+and you can filter only "disk" devices by typing
+
+$> lshw -C disk
+
+You can list the partitions of your first SATA disk using fdisk, that manipulates disk partition table.
+
+$> fdisk -l /dev/sda
+
+Using other options of fdisk you can change the partition table, editing, deleting and creation partitions, and them formmating them by creating a new file system. You can, however, do that on a regular file, and not only on "disk" devices. See how:
+
+The dd command converts and copies a file. Use it to create a file called "mydisk" filled with zeroes (copied from the /dev/zero device). The following command will copy 20480 blocks of 512 bytes (10MB) from /dev/zero to the regular file mydisk.
+
+$> dd if=/dev/zero of=mydisk count=20480
+
+Confirm the size of the new file by typing:
+
+$> du -sh mydisk
+
+And confirm it's filled with zeroes by looking into its binary content, typing:
+
+$> hexdump -C mydisk
+
+You'll something link this:
+
+00000000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+
+It shows the first address(in hexa) 0x00000000 and the following 16 bytes. Characters in between "|" and "|" are the ASCII that correspond to the content of that 16 bytes.
+
+When consecutive lines have the same content, they're ommited and replaced by a line with a single asterisk "*". See that lines from "00000000" to "00a00000" have only bytes 0x00. If you want to see all the content, even if they are the same the previous line, type:
+
+$> hexdump -Cv mydisk | less
+
+Now lets create a file system in that file using the mkfs (make file system) command. Create a ext4 file system by typing the following line. Proceed even if mydisk is not a block device.
+
+$> mkfs -t ext4 mydisk
+
+Checkout the new file system information shown in the standard output (including superblock backups). Much more information can be obtained with the command tune2fs, that lists or  adjusts tunable filesystem parameters.
+
+$> tune2fs -l mydisk
+
+Pay attention at least on the "filesystem magic number", "features" and "last mounted path". The disk size can be obtained using "Block count" and "Block size" infos. Finally, know that 1445 blocks are now used after the format procedure (Block count - Free blocks).
+
+Now you can "see" the minimum changes into a recently formatted disk by showing again its binary content, which correspond to the minimum data structures mantained by the operating system (inodes table, root directory structure, free space management, superblock and its backups, etc)
+
+$> hexdump -C mydisk | less
+
+Now you'll see lines like this:
+
+00000430  18 0b 73 55 00 00 ff ff  53 ef 01 00 01 00 00 00  |..sU....S.......|
+
+It contains a piece of a data structure used by the OS to control the file system. In the case of this specific line, this structure is the superblock and you can recognise the file system magic number in it. Using the "tune2fs" command you saw the magic number if "0xEF53". It's store in a big endian format on bytes 8 and 9.
+
+Of course you need to know implementation details of the ext4 file system so you can rebuild or understand the data structures in the disk. This is beyond our goals.
+
+Now you can mount this new "device" on a mount-point and to use the file system, creating directories and files in it. Create a moint-point and mount the file system using the followings commands:
+
+$> mkdir mount-point
+
+$> mount -o loop mydisk mount-point
+
+Get inside the new file system, by just typing:
+
+$> cd mount-point
+
+Try creating one new directory and two new files, by typing:
+
+$> echo "first file contents" > firstfile.txt
+
+$> mkdir directory
+
+$> echo "second file contents" > directory/secondfile.txt
+
+Now unmount the file system (and see it was done):
+
+$> cd ..
+
+$> ls -l mount-point
+
+$> umount mount-point
+
+$> ls -l mount-point
+
+Finally, checkout again the binary content of the "mydisk" file and try to find the new structures (one directory, two files and their content). Can you find the contents of the files? Can you see the "Last mounted on" information saved on the superblock?
+
+$> hexdump -C mydisk | less
+
+Try looking for something like this:
+
+00162400  73 65 63 6f 6e 64 20 66  69 6c 65 20 63 6f 6e 74  |second file cont|
+00162410  65 6e 74 73 0a 00 00 00  00 00 00 00 00 00 00 00  |ents............|
+
+Discover much more to do searching the internet.
+
+Last modified: segunda, 7 novembro 2016, 10:35
